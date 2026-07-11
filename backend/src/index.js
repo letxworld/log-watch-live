@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const db = require('./db');
+const { runDetection } = require('./detection');
 
 const app = express();
 app.use(cors());
@@ -69,6 +70,11 @@ app.post('/api/ingest', (req, res) => {
 
   // Notify the dashboard live
   broadcast('new_events', insertedEvents);
+
+  const newAlerts = runDetection(insertedEvents);
+  if (newAlerts.length > 0) {
+    broadcast('new_alerts', newAlerts);
+  }
 
   res.json({ status: 'ok', received: logs.length });
 });
