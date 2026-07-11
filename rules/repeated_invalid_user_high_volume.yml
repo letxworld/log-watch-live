@@ -1,0 +1,9 @@
+title: High-Volume Username Enumeration
+id: al-011
+description: Detects an aggressive username enumeration attempt - a higher threshold than the standard invalid-user rule, indicating a dedicated automated attack rather than a stray typo.
+severity: high
+detection:
+  event_type: invalid_user_attempt
+  group_by: source_ip
+  threshold: 15
+  timeframe_minutes: 5

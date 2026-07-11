@@ -1,0 +1,9 @@
+title: User Account Deleted
+id: al-008
+description: Flags deletion of a user account - worth reviewing to confirm it was an intentional administrative action.
+severity: medium
+detection:
+  event_type: user_deleted
+  group_by: hostname
+  threshold: 1
+  timeframe_minutes: 1

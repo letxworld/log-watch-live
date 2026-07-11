@@ -1,0 +1,9 @@
+title: Abnormally High Volume of Sudo Commands
+id: al-006
+description: Detects an unusually large number of sudo commands from a single user in a short window, which may indicate an automated script or compromised account performing bulk privileged actions.
+severity: medium
+detection:
+  event_type: sudo_command
+  group_by: username
+  threshold: 20
+  timeframe_minutes: 5

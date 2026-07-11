@@ -1,0 +1,9 @@
+title: Successful Login From New Source
+id: al-002
+description: Flags any successful login for visibility - useful as a baseline alert, low severity, no threshold needed.
+severity: low
+detection:
+  event_type: auth_success
+  group_by: source_ip
+  threshold: 1
+  timeframe_minutes: 1

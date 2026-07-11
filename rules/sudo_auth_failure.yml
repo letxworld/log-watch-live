@@ -1,0 +1,9 @@
+title: Repeated Sudo Authentication Failures
+id: al-005
+description: Detects a user repeatedly failing sudo authentication, which may indicate a compromised account being used to attempt privilege escalation.
+severity: high
+detection:
+  event_type: sudo_auth_failure
+  group_by: username
+  threshold: 3
+  timeframe_minutes: 10

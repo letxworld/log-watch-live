@@ -1,0 +1,9 @@
+title: Invalid User Enumeration Attempt
+id: al-003
+description: Detects repeated login attempts using non-existent usernames from the same source, indicating username enumeration or automated scanning.
+severity: medium
+detection:
+  event_type: invalid_user_attempt
+  group_by: source_ip
+  threshold: 3
+  timeframe_minutes: 5

@@ -1,0 +1,9 @@
+title: SSH Key-Based Login
+id: al-010
+description: Baseline visibility alert for key-based logins - low severity, useful for building a picture of normal access patterns over time.
+severity: low
+detection:
+  event_type: ssh_key_login
+  group_by: source_ip
+  threshold: 1
+  timeframe_minutes: 1

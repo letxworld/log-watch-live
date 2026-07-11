@@ -1,0 +1,9 @@
+title: Direct Root Login
+id: al-004
+description: Flags any direct login as root - best practice is to disable root SSH login entirely and use sudo instead, so this should always be reviewed.
+severity: high
+detection:
+  event_type: root_login
+  group_by: source_ip
+  threshold: 1
+  timeframe_minutes: 1

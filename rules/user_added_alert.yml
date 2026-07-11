@@ -1,0 +1,9 @@
+title: New User Account Created
+id: al-007
+description: Flags creation of a new user account on the system - legitimate during provisioning, but suspicious if unexpected, as attackers often create backdoor accounts.
+severity: medium
+detection:
+  event_type: user_added
+  group_by: hostname
+  threshold: 1
+  timeframe_minutes: 1

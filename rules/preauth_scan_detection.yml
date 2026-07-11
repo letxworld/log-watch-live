@@ -1,0 +1,9 @@
+title: Possible SSH Scanning Activity
+id: al-009
+description: Detects a high number of connections closed before authentication completes from the same source, a common signature of automated SSH scanners probing for open/misconfigured servers.
+severity: low
+detection:
+  event_type: connection_closed_preauth
+  group_by: source_ip
+  threshold: 10
+  timeframe_minutes: 5

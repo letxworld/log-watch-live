@@ -1,0 +1,9 @@
+title: Brute Force Login Attempt
+id: bf-001
+description: Detects 5+ failed logins from the same source IP within 5 minutes.
+severity: high
+detection:
+  event_type: auth_failure
+  group_by: source_ip
+  threshold: 5
+  timeframe_minutes: 5

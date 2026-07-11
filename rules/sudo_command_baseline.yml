@@ -1,0 +1,9 @@
+title: Sudo Command Executed
+id: al-012
+description: Baseline visibility alert logging any sudo command execution - low severity, useful for building an audit trail of privileged actions over time.
+severity: low
+detection:
+  event_type: sudo_command
+  group_by: hostname
+  threshold: 1
+  timeframe_minutes: 1

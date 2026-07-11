@@ -1,8 +1,7 @@
 const db = require('./db');
 const { loadRules } = require('./ruleLoader');
 
-// Rules are loaded once at startup. To add a new detection, just add a .yml
-// file to /rules and restart the server - no code changes needed here.
+
 const rules = loadRules();
 
 const insertAlert = db.prepare(`
@@ -10,10 +9,7 @@ const insertAlert = db.prepare(`
   VALUES (@rule_name, @severity, @detail, @hostname)
 `);
 
-/**
- * Runs every loaded rule against a batch of newly inserted events.
- * Returns any new alerts generated, so they can be broadcast live.
- */
+
 function runDetection(newEvents) {
   const newAlerts = [];
 
@@ -40,9 +36,7 @@ function evaluateRule(rule, event) {
     return null;
   }
 
-  // Build the count query dynamically based on which field this rule groups by
-  // (source_ip, username, hostname, etc.) - group_by is only ever a fixed set of
-  // known column names from our own YAML files, never raw user input, so this is safe.
+ 
   const query = `
     SELECT COUNT(*) as count
     FROM events
@@ -52,19 +46,33 @@ function evaluateRule(rule, event) {
   `;
   const result = db.prepare(query).get(event_type, fieldValue, timeframe_minutes);
 
-  if (result && result.count >= threshold) {
-    const alertData = {
-      rule_name: rule.title,
-      severity: rule.severity,
-      detail: `${rule.description} (matched on ${group_by}=${fieldValue}, count=${result.count})`,
-      hostname: event.hostname,
-    };
-
-    insertAlert.run(alertData);
-    return alertData;
+  if (!result || result.count < threshold) {
+    return null;
   }
 
-  return null;
+  
+  const existingAlert = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM alerts
+    WHERE rule_name = ?
+      AND hostname = ?
+      AND detail LIKE ?
+      AND timestamp >= datetime('now', '-' || ? || ' minutes')
+  `).get(rule.title, event.hostname, `%${group_by}=${fieldValue}%`, timeframe_minutes);
+
+  if (existingAlert && existingAlert.count > 0) {
+    return null; // already alerted for this rule+entity recently, don't duplicate
+  }
+
+  const alertData = {
+    rule_name: rule.title,
+    severity: rule.severity,
+    detail: `${rule.description} (matched on ${group_by}=${fieldValue}, count=${result.count})`,
+    hostname: event.hostname,
+  };
+
+  insertAlert.run(alertData);
+  return alertData;
 }
 
 module.exports = { runDetection };
