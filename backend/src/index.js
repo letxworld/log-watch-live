@@ -90,29 +90,72 @@ app.get('/api/endpoints', (req, res) => {
   res.json(rows);
 });
 
-
 function parseLogLine(line) {
-  const failedLoginMatch = line.match(/Failed password for (\S+) from ([\d.]+)/);
-  if (failedLoginMatch) {
-    return {
+  const patterns = [
+    {
       event_type: 'auth_failure',
-      username: failedLoginMatch[1],
-      source_ip: failedLoginMatch[2],
-    };
-  }
-
-  const successLoginMatch = line.match(/Accepted password for (\S+) from ([\d.]+)/);
-  if (successLoginMatch) {
-    return {
+      regex: /Failed password for (?!invalid user)(\S+) from ([\d.]+)/,
+      fields: ['username', 'source_ip'],
+    },
+    {
+      event_type: 'invalid_user_attempt',
+      regex: /Failed password for invalid user (\S+) from ([\d.]+)/,
+      fields: ['username', 'source_ip'],
+    },
+    {
       event_type: 'auth_success',
-      username: successLoginMatch[1],
-      source_ip: successLoginMatch[2],
-    };
+      regex: /Accepted password for (\S+) from ([\d.]+)/,
+      fields: ['username', 'source_ip'],
+    },
+    {
+      event_type: 'ssh_key_login',
+      regex: /Accepted publickey for (\S+) from ([\d.]+)/,
+      fields: ['username', 'source_ip'],
+    },
+    {
+      event_type: 'root_login',
+      regex: /Accepted \S+ for root from ([\d.]+)/,
+      fields: ['source_ip'],
+    },
+    {
+      event_type: 'sudo_command',
+      regex: /(\S+)\s*:\s*TTY=\S+\s*;\s*PWD=\S+\s*;\s*USER=(\S+)\s*;\s*COMMAND=(.+)/,
+      fields: ['username', 'target_user', 'command'],
+    },
+    {
+      event_type: 'sudo_auth_failure',
+      regex: /pam_unix\(sudo:auth\):\s*authentication failure.*user=(\S+)/,
+      fields: ['username'],
+    },
+    {
+      event_type: 'user_added',
+      regex: /new user:\s*name=(\S+)/,
+      fields: ['username'],
+    },
+    {
+      event_type: 'user_deleted',
+      regex: /delete user '(\S+)'/,
+      fields: ['username'],
+    },
+    {
+      event_type: 'connection_closed_preauth',
+      regex: /Connection closed by (?:authenticating user \S+ )?([\d.]+) port \d+ \[preauth\]/,
+      fields: ['source_ip'],
+    },
+  ];
+
+  for (const pattern of patterns) {
+    const match = line.match(pattern.regex);
+    if (match) {
+      const result = { event_type: pattern.event_type, username: null, source_ip: null };
+      pattern.fields.forEach((field, i) => {
+        if (field === 'username' || field === 'source_ip') {
+          result[field] = match[i + 1];
+        }
+      });
+      return result;
+    }
   }
 
-  return {
-    event_type: 'unknown',
-    username: null,
-    source_ip: null,
-  };
+  return { event_type: 'unknown', username: null, source_ip: null };
 }
