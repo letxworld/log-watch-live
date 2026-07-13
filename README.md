@@ -14,36 +14,20 @@ raw logs → structured events → rule evaluation → alerts → live dashboard
 
 ## Architecture
 
+```mermaid
+flowchart TD
+    A["Monitored machine<br/>/var/log/auth.log"] -->|file changes| B["Agent<br/>(agent/linux/agent.js)"]
+    B -->|"POST /api/ingest<br/>every 5 seconds"| C["Backend: index.js"]
+    C --> D["Parse raw log lines<br/>into structured events"]
+    D --> E[("SQLite<br/>logwatch.db")]
+    D --> F["Detection Engine<br/>(detection.js)"]
+    F -->|"checks against"| G["YAML Rules<br/>(rules/*.yml via ruleLoader.js)"]
+    F -->|"threshold met"| E
+    C -->|"WebSocket broadcast"| H["Dashboard<br/>(React + Vite)"]
+    E -->|"GET /api/events, /api/alerts"| H
 ```
-┌──────────────────┐
-│  Monitored machine │  /var/log/auth.log grows as logins,
-│                     │  sudo commands, etc. happen
-└─────────┬───────────┘
-          │ agent watches the file continuously
-          ▼
-┌──────────────────┐
-│      Agent         │  Buffers new lines, ships them as JSON
-│   (agent/linux)    │  to the backend every 5 seconds
-└─────────┬───────────┘
-          │ HTTP POST /api/ingest
-          ▼
-┌────────────────────────────────────────────┐
-│                  Backend                      │
-│                                                │
-│  1. Parses raw log lines into structured       │
-│     events (event_type, username, source_ip)   │
-│  2. Stores events in SQLite                     │
-│  3. Runs every event against all loaded          │
-│     YAML detection rules                          │
-│  4. Stores + broadcasts any resulting alerts       │
-└─────────┬──────────────────────────────────────┘
-          │ WebSocket (live push)
-          ▼
-┌──────────────────┐
-│     Dashboard       │  React app - updates instantly,
-│   (React + Vite)    │  no refresh needed
-└──────────────────┘
-```
+
+**Flow summary:** a monitored machine's log file changes → the agent detects it and ships new lines to the backend → the backend parses and stores each event → every event is checked against all loaded YAML rules → matches become alerts → both events and alerts are pushed live to the dashboard over WebSocket, with no page refresh needed.
 
 ## Project structure
 
