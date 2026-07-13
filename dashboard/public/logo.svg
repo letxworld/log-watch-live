@@ -1,0 +1,28 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1c2128"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <radialGradient id="pulseGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3fb950" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3fb950" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Shield outline -->
+  <path d="M32 3 L56 12 V29 C56 45 46 55 32 61 C18 55 8 45 8 29 V12 Z"
+        fill="url(#shieldGradient)" stroke="#3fb950" stroke-width="2"/>
+
+  <!-- Radar sweep circle -->
+  <circle cx="32" cy="30" r="14" fill="url(#pulseGlow)"/>
+  <circle cx="32" cy="30" r="14" fill="none" stroke="#3fb950" stroke-width="1" opacity="0.5"/>
+  <circle cx="32" cy="30" r="8" fill="none" stroke="#3fb950" stroke-width="1" opacity="0.7"/>
+
+  <!-- Live pulse line (like a heartbeat / log activity line) -->
+  <polyline points="16,30 22,30 26,20 30,40 34,24 37,30 48,30"
+            fill="none" stroke="#e6edf3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Center dot -->
+  <circle cx="32" cy="30" r="2.5" fill="#3fb950"/>
+</svg>
