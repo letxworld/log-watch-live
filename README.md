@@ -1,4 +1,4 @@
-# log-watch-live 🛰️
+# Log Watch live
 
 A self-hosted mini-SIEM: it watches log files on machines you own, detects suspicious activity in real time using a YAML-based rule engine, and displays everything on a live dashboard.
 
@@ -41,8 +41,10 @@ log-watch-live/
 │   │   └── ruleLoader.js  # Loads all YAML rules from /rules at startup
 │   └── logwatch.db        # SQLite database (created automatically)
 ├── agent/
-│   └── linux/
-│       └── agent.js       # Watches a log file, ships new lines to backend
+│   ├── linux/
+│   │   └── agent.js       # Watches a log file, ships new lines to backend
+│   └── windows/
+│       └── agent.ps1      # Polls Security Event Log, ships to backend
 ├── dashboard/              # React + Vite frontend
 │   └── src/
 │       ├── App.jsx
@@ -111,6 +113,8 @@ PORT=5050 node src/index.js
 
 ### 2. Agent
 
+**Linux:**
+
 Run on any machine you want to monitor (needs read access to the log file, typically via `sudo`):
 
 ```bash
@@ -122,6 +126,24 @@ Environment variables:
 ```bash
 BACKEND_URL=http://your-backend:4000/api/ingest LOG_FILE=/var/log/auth.log sudo node agent.js
 ```
+
+**Windows:**
+
+Polls the Security Event Log (Event IDs 4625, 4624, 4720, 4726 - failed/successful logins, user created/deleted) instead of tailing a text file, since Windows doesn't expose logs as plain text. Formats each event to match the same log-line style the backend already parses, so no backend changes are needed to support it.
+
+Run in an **Administrator PowerShell** (Security log requires elevated access):
+
+```powershell
+cd agent\windows
+.\agent.ps1 -BackendUrl "http://your-backend:4000/api/ingest"
+```
+
+Optional parameters:
+```powershell
+.\agent.ps1 -BackendUrl "http://your-backend:4000/api/ingest" -PollIntervalSeconds 10
+```
+
+> **Note:** The Windows agent was developed and code-reviewed on a Linux dev machine, so it hasn't been run against a live Windows Event Log yet. The Linux agent has been fully tested end-to-end (real SSH logins → detected → alerted → shown on dashboard).
 
 ### 3. Dashboard
 
